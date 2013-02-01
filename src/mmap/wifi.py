@@ -6,7 +6,12 @@ from functools import total_ordering
 
 class WifiLocator(object):
 
-    def get_strengths(self):
+    def scan(self):
+        # Best strengths to worst
+        return sorted(self._do_scan(), reverse=True)
+
+    def _do_scan(self):
+        # Should return a list of WifiCell s
         raise NotImplemented()
 
 def make_locator():
@@ -55,10 +60,9 @@ class LinuxWifiLocator(WifiLocator):
         self.use_sudo = use_sudo
         self._parser = _IWListParser()
 
-    def get_strengths(self):
+    def _do_scan(self):
         raw_scan = self._get_raw_scan()
-        cells = self._parser.parse(raw_scan)
-        return sorted(cells, reverse=True) # Best strengths to worst
+        return self._parser.parse(raw_scan)
 
     def _get_raw_scan(self):
         command = ['iwlist', self.interface, 'scan']
@@ -68,7 +72,8 @@ class LinuxWifiLocator(WifiLocator):
         try:
             return subprocess.check_output(command,
                                            stderr=subprocess.STDOUT)
-        except subprocess.CalledProcessError:
+        except subprocess.CalledProcessError as e:
+            print e
             raise UnableToScanError()
 
 class _IWListParser(object):
