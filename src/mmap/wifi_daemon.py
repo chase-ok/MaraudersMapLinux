@@ -1,8 +1,12 @@
 
 import wifi
-import cPickle
 from multiprocessing import Process, Manager
 import time
+
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 
 class DaemonNotRunningError(Exception):
     pass
@@ -11,8 +15,13 @@ def _daemon(shared):
     locator = wifi.make_locator()
 
     while True:
-        cells = locator.scan()
-        shared['latest_scan'] = cPickle.dumps(cells)
+        try:
+            cells = locator.scan()
+        except wifi.UnableToScanError:
+            locator = wifi.make_locator()
+            continue
+
+        shared['latest_scan'] = pickle.dumps(cells)
         time.sleep(shared['update_interval'])
 
 _daemon_process = None
@@ -24,7 +33,7 @@ def start(update_interval=15):
 
     manager = Manager()
     _daemon_shared = manager.dict()
-    _daemon_shared['latest_scan'] = cPickle.dumps([])
+    _daemon_shared['latest_scan'] = pickle.dumps([])
     _daemon_shared['update_interval'] = update_interval
 
     _daemon_process = Process(target=_daemon, args=(_daemon_shared,))
@@ -43,7 +52,7 @@ def set_update_interval(interval):
 
 def get_latest_scan():
     _assert_running()
-    return cPickle.loads(_daemon_shared['latest_scan'])
+    return pickle.loads(_daemon_shared['latest_scan'])
 
 def force_scan():
     raise NotImplemented()
