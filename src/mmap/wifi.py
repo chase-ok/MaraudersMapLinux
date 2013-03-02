@@ -20,8 +20,8 @@ def make_locator():
     else:
         return WifiLocator()
 
-class UnableToScanError(Exception):
-    pass
+class WifiError(Exception): pass
+class UnableToScanError(WifiError): pass
 
 @total_ordering
 class WifiCell(object):
@@ -30,6 +30,14 @@ class WifiCell(object):
         self.address = address
         self.strength = strength
         self.essid = essid
+
+    @property
+    def map_strength(self):
+        return self.strength + 100
+
+    @property
+    def binding_pair(self):
+        return "nearest[{0}]".format(self.address), str(self.map_strength)
 
     def __repr__(self):
         return "WifiCell({0}, {1}, {2})"\

@@ -1,5 +1,6 @@
 
 import wifi
+import client
 from multiprocessing import Process, Manager
 import time
 
@@ -17,7 +18,7 @@ def _daemon(shared):
     while True:
         try:
             cells = locator.scan()
-        except wifi.UnableToScanError:
+        except wifi.WifiError:
             locator = wifi.make_locator()
             continue
 
