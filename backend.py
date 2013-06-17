@@ -25,6 +25,6 @@ def start_session(sessionid):
 
 	return parsed[keycheck]
 
-sessionid = login('jnee', 'B3loved1')
+sessionid = login()
 
 print start_session(sessionid)
